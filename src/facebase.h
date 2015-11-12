@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 
 #include <photo.h>
 #include <face.h>
@@ -13,7 +14,7 @@ class FaceBase
   private:
     //Node* findNode(std::string /*node_id*/);
     Node* newNode(std::string /*node_id*/);
-    //std::map<std::string, Photo*> photos;
-    //std::map<std::string, Node*> nodes;
-    //std::map<std::string, Face*> faces;
+    std::map<std::string, Photo*> photos;
+    std::map<std::string, Node*> nodes;
+    std::map<std::string, Face*> faces;
 };

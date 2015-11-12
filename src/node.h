@@ -11,8 +11,9 @@ class Node
   public:
     Node(std::string /*id*/);
     std::string id;
+    void addFace(Face* face);
   private:
-    std::map<int,Face*> faces;
+    std::map<std::string,Face*> faces;
 };
 
 #endif // NODE_H

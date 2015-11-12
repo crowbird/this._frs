@@ -79,7 +79,7 @@ int Server::start()
         ////std::cout << "    name - " << photosMetadata[item]["tags"]["data"]["name"] << "\n";
         //std::cout << "  paging - " << photosMetadata[item]["tags"]["paging"] << "\n";
         //std::cout << "\nid - " << photosMetadata[item]["id"] << "\n";
-        break;
+        //break;
       }
       //printf("size:%u\n", photosMetadata.size());
       //std::cout << typeid(photosMetadata).name() << '\n';
