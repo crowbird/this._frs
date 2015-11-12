@@ -1,6 +1,8 @@
 #ifndef NODE_H
 #define NODE_H
 
+#include <map>
+
 #include <face.h>
 #include <photo.h>
 
@@ -10,7 +12,7 @@ class Node
     Node(std::string /*id*/);
     std::string id;
   private:
-    std::map<std::string,Face*> faces;
+    std::map<int,Face*> faces;
 };
 
 #endif // NODE_H
