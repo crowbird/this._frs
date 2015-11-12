@@ -43,6 +43,6 @@ include_directories(${Qt5Widgets_INCLUDE_DIRS}
                     ${Qt5Core_INCLUDE_DIRS} 
                     ${Qt5Gui_INCLUDE_DIRS})
 
-add_executable(frs photo.cpp facebase.cpp node.cpp server.cpp main.cpp)
+add_executable(frs face.cpp node.cpp photo.cpp facebase.cpp eye.cpp server.cpp main.cpp)
 
 target_link_libraries(frs ${requiredlibs} ${Boost_LIBRARIES} ${OpenCV_LIBS} ${OPENBR_LIBS} Qt5::Core) 

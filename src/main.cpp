@@ -1,4 +1,4 @@
-#include <iostream>
+#include <pthread.h>
 #include <QString>
 #include <iostream>
 #include <openbr/openbr_plugin.h>
@@ -8,6 +8,8 @@
 #include <opencv2/opencv.hpp>
 
 #include <server.h>
+#include <eye.h>
+#include <facebase.h>
 
 static void printTemplate(const br::Template &t)
 {
@@ -20,22 +22,89 @@ void newPhoto(Photo* photo)
 {
 }
 
+FaceBase facebase;
+
+int visualize_photo(Photo* photo)
+{
+  //cv::Mat img = cv::imread("/home/cgreen/photobase/test", CV_LOAD_IMAGE_UNCHANGED);
+
+  //cv::namedWindow("MyWindow", CV_WINDOW_AUTOSIZE); //create a window with the name "MyWindow"
+  //cv::imshow("MyWindow", img); //display the image which is stored in the 'img' in the "MyWindow" window
+
+  //cv::waitKey(5000); //wait infinite time for a keypress
+
+  //cv::destroyWindow("MyWindow"); //destroy the window with the name, "MyWindow"
+  //return 0;
+}
+
+void* server_function(void *context)
+{
+  Server *server = (Server*)context;
+  server->run();
+  return server;
+}
+
+void* eye_function(void* context)
+{
+  Eye *eye = (Eye*)context;
+  eye->run();
+  return eye;
+}
+
 int main(int argc, char *argv[])
 {
-  Server server = Server(55555, newPhoto);
-  server.start(); 
+  int ret;
+
+  pthread_t server_thread, eye_thread;
+  Server server = Server(55555, &facebase);
+  Eye eye = Eye();
+  ret = pthread_create(&server_thread, NULL, server_function, &server); 
+  if (ret < 0)
+  {
+    return ret;
+  }
+  ret = pthread_create(&eye_thread, NULL, eye_function, &eye); 
+  if (ret < 0)
+  {
+    return ret;
+  }
+  
+
+  pthread_join(server_thread,NULL);
 
 
-    br::Context::initialize(argc, argv);
+  br::Context::initialize(argc, argv);
+  br_set_property("enrollALL","true");
+  br::Globals->enrollAll = true;
+
+  //printf("read image\n");
+  //cv::Mat img = cv::imread("/home/cgreen/photobase/test", CV_LOAD_IMAGE_UNCHANGED);
+  //printf("named window\n");
+  //cv::namedWindow("MyWindow", CV_WINDOW_AUTOSIZE); //create a window with the name "MyWindow"
+  //printf("show\n");
+  //cv::imshow("MyWindow", img); //display the image which is stored in the 'img' in the "MyWindow" window
+  //printf("wait\n");
+  //cv::waitKey(1000); //wait infinite time for a keypress
+  //printf("cleanup\n");
+  //cv::destroyWindow("MyWindow"); //destroy the window with the name, "MyWindow"
+
+  //cv::Mat img = cv::imread("/home/cgreen/photobase/test", CV_LOAD_IMAGE_UNCHANGED);
+
+  //cv::namedWindow("MyWindow", CV_WINDOW_AUTOSIZE); //create a window with the name "MyWindow"
+  //cv::imshow("MyWindow", img); //display the image which is stored in the 'img' in the "MyWindow" window
+
+  //cv::waitKey(5000); //wait infinite time for a keypress
+
+  //cv::destroyWindow("MyWindow"); //destroy the window with the name, "MyWindow"
+  //return 0;
+
     
-    br_set_property("enrollALL","true");
 
     // Retrieve classes for enrolling and comparing templates using the FaceRecognition algorithm
     //QSharedPointer<br::Transform> transform = br::Transform::fromAlgorithm("FaceRecognition");
     //QSharedPointer<br::Distance> distance = br::Distance::fromAlgorithm("FaceRecognition");
     QSharedPointer<br::Transform> transform = br::Transform::fromAlgorithm("Open+Cascade(FrontalFace)+ASEFEyes");
 
-    br::Globals->enrollAll = true;
 
     // Initialize templates
     //br::Template queryA("../data/MEDS/img/S354-01-t10_01.jpg");
@@ -46,9 +115,11 @@ int main(int argc, char *argv[])
     br::Template target_sarah("/home/cgreen/img/faces/sarah/shot0001.jpg");
 
     cv::VideoCapture capture;
-    capture.open(0);
+
     capture.set(CV_CAP_PROP_FRAME_WIDTH, 640);
     capture.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+
+    capture.open(0);
 
     if (!capture.isOpened()) {
             std::cerr << "---(!)Error opening video capture\n";

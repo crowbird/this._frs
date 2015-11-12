@@ -1,18 +1,17 @@
 #ifndef FACE_H
 #define FACE_H
 
-#include <photo.h>
+#include <iostream>
 
 class Face
 {
   public:
-    Face(std::string /*face_id*/, std::string /*node_id*/, Photo*);
-    std::string id;
+    Face(int /*face_idx*/, std::string /*node_id*/, double x, double y, std::string /*face_name*/);
+    double x,y;
+    std::string name;
   private:
     std::string created_time;
     std::string node_id;
-    Photo *photo;
-    float x,y;
 };
 
 #endif // FACE_H

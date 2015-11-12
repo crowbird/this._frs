@@ -1,5 +1,9 @@
+#ifndef FACEBASE_H
+#define FACEBASE_H
+
 #include <iostream>
 #include <map>
+#include <queue>
 
 #include <photo.h>
 #include <face.h>
@@ -9,12 +13,16 @@ class FaceBase
 {
   public:
     FaceBase();
-    void newPhoto(std::string /*photo_id*/, std::string /*link*/);
-    Face* newFace(std::string /*face_id*/, std::string /*photo_id*/, std::string /*node_id*/, float x, float y);
+    void detectFaces(std::string /*photo_id*/);
+    void newPhoto(std::string /*photo_id*/, std::string /*link*/, int tag_count);
+    Face* newFace(int /*face_idx*/, std::string /*photo_id*/, std::string /*node_id*/, double x, double y, std::string face_name);
+    std::queue<Photo*> valid_photos;
   private:
     //Node* findNode(std::string /*node_id*/);
     Node* newNode(std::string /*node_id*/);
     std::map<std::string, Photo*> photos;
     std::map<std::string, Node*> nodes;
-    std::map<std::string, Face*> faces;
+    //std::map<std::string, Face*> faces;
 };
+
+#endif // FACEBASE_H

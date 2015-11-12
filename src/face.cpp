@@ -2,11 +2,10 @@
 
 #include <face.h>
 
-Face::Face(std::string face_id, std::string node_id, Photo *photo, float x, float y)
+Face::Face(int face_idx, std::string node_id, double x, double y, std::string face_name)
 {
-  id.assign(face_id);
-  node_id.assign(node_id);
-  this->photo = photo;
+  this->node_id.assign(node_id);
+  this->name.assign(face_name);
   this->x = x;
   this->y = y;
 }

@@ -5,8 +5,15 @@
 
 #include <photo.h>
 
-Photo::Photo(std::string id, std::string link)
+Photo::Photo(std::string id, std::string link, int face_count)
 {
+  valid = false;
+  faces = new Face*[face_count];
+  for (int face_idx = 0; face_idx < face_count; face_idx++)
+  {
+    faces[face_idx] = NULL;
+  }
+  this->face_count = face_count;
   this->id.assign(id);
   this->link.assign(link);
 }

@@ -7,5 +7,6 @@ Node::Node(std::string id)
 
 void Node::addFace(Face* face)
 {
-  faces[face->id] = face;
+  //faces[face->id] = face;
+  faces.push_front(face);
 }

@@ -1,11 +1,15 @@
-#include <photo.h>
+#ifndef SERVER_H
+#define SERVER_H
+
+#include <facebase.h>
 
 class Server
 {
   public:
-    Server(int port, void (*RXPhotoCallback)(Photo*));
-    int start(void);
+    Server(int port, FaceBase*);
+    int run(void);
   private:
     int port;
-    void (*RXPhotoCallback)(Photo*);
 };
+
+#endif // SERVER_H
