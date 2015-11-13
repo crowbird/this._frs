@@ -17,18 +17,25 @@ FaceBase::FaceBase()
 
 void FaceBase::detectFaces(std::string photo_id)
 {
-  QSharedPointer<br::Transform> face_transform = br::Transform::fromAlgorithm("Open+Cascade(FrontalFace)+ASEFEyes");
-  br::TemplateList querylist;
+  Photo* photo = photos[photo_id];
+  //QSharedPointer<br::Transform> face_transform = br::Transform::fromAlgorithm("Open+Cascade(FrontalFace)+ASEFEyes");
+  QSharedPointer<br::Transform> face_transform = br::Transform::fromAlgorithm("FaceRecognition");
   br::Template photo_template(photos[photo_id]->file_path.c_str());
 
-  querylist.push_back(photo_template);
-  querylist >> *face_transform;
-  printf("%s detected %u faces\n", photo_id.c_str(), querylist.count());
-  for (int i = 0; i < querylist.count(); i++)
+  //br::TemplateList face_templates;
+  //face_templates.push_back(photo_template);
+  //face_templates >> *face_transform;
+  
+  photo->face_templates.push_back(photo_template);
+  photo->face_templates >> *face_transform;
+  
+  //printf("%s detected %u faces\n", photo_id.c_str(), photo->face_templates.count());
+  for (int i = 0; i < photo->face_templates.count(); i++)
   {
-    br::Template face_template = querylist.at(i);
+    //br::Template detect_template = face_templates.at(i);
+    br::Template detect_template = photo->face_templates.at(i);
     
-    const QRect faceroi = face_template.file.get<QRect>("FrontalFace");
+    const QRect faceroi = detect_template.file.get<QRect>("FrontalFace");
     double x = faceroi.x() + (faceroi.width() / 2);
     double y = faceroi.y() + (faceroi.height() / 2);
     printf("face at %f,%f\n", x,y);
@@ -39,7 +46,7 @@ void FaceBase::detectFaces(std::string photo_id)
     for(int face_idx = 0; face_idx < photos[photo_id]->face_count; face_idx++)
     {
       Face* face = photos[photo_id]->faces[face_idx];;
-      double distance = sqrt(pow(abs(face->x - x),2) + pow(abs(face->y - y),2));
+      double distance = sqrt(pow(abs(face->tag_x - x),2) + pow(abs(face->tag_y - y),2));
       if (distance < min_distance)
       {
         min_distance = distance;
@@ -47,10 +54,37 @@ void FaceBase::detectFaces(std::string photo_id)
       }
     }
     Face* face = photos[photo_id]->faces[min_face_idx];
-    printf("tag at %f,%f dis - %f for %s\n", face->x, face->y, min_distance, face->name.c_str());
+    if (min_distance < DISTANCE_THRESHOLD)
+    {
+      face->markDetect(x,y, min_distance, i);
+      face->face_template = detect_template;
+      Node* node = newNode(face->node_id);
+      /*std::list<Face*>::iterator it;
+      for (it = node->faces.begin(); it != node->faces.end(); ++it)
+      {
+        Face *compare_face = *t;
+
+      }*/
+      node->addFace(face);
+      nodes[face->node_id] = node;
+    }
+    printf("tag at %f,%f dis - %f for %s\n", face->tag_x, face->tag_y, min_distance, face->name.c_str());
   }
-  //photos[photo_id]->valid = true;
-  //valid_photos.push(photos[photo_id]);
+  photos[photo_id]->valid = true;
+  valid_photos.push(photos[photo_id]);
+}
+
+Photo* FaceBase::getNewPhoto(void)
+{
+  while (valid_photos.empty())
+  {
+    printf("waiting...\n");
+    usleep(100000);
+  }
+  Photo *photo;
+  photo = valid_photos.front();
+  valid_photos.pop();
+  return photo;
 }
 
 void FaceBase::newPhoto(std::string photo_id, std::string link, int face_count)
@@ -85,7 +119,6 @@ Face* FaceBase::newFace(int face_idx, std::string photo_id, std::string node_id,
     return NULL;
   }
 
-  Node* node = newNode(node_id);
   Face* face = photo->faces[face_idx];
   if (face != NULL)
   {
@@ -94,10 +127,8 @@ Face* FaceBase::newFace(int face_idx, std::string photo_id, std::string node_id,
     return NULL;
   }
 
-  face = new Face(face_idx, node_id, x, y, face_name);
-  node->addFace(face);
+  face = new Face(face_idx, node_id, photo_id, x, y, face_name);
 
-  nodes[node_id] = node;
   photos[photo_id]->faces[face_idx] = face;
   return face;
 }

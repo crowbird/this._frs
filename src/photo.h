@@ -21,6 +21,7 @@ class Photo
     Face** faces;
     int face_count;
     bool valid;
+    br::TemplateList face_templates;
   private:
     bool downloaded(void);
     std::string id;

@@ -1,7 +1,8 @@
 class Eye
 {
   public:
-    Eye();
+    Eye(FaceBase* fb);
     int run();
   private:
+    FaceBase *eye_facebase;
 };

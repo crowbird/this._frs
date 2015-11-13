@@ -14,8 +14,8 @@ class Node
     Node(std::string /*id*/);
     std::string id;
     void addFace(Face* face);
-  private:
     std::list<Face*> faces;
+  private:
 };
 
 #endif // NODE_H
