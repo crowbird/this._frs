@@ -10,6 +10,7 @@ Face::Face(int face_idx, std::string node_id, std::string photo_id, double tag_x
   this->name.assign(face_name);
   this->tag_x = tag_x;
   this->tag_y = tag_y;
+  this->match_count = 0;
 }
 
 void Face::markDetect(double detect_x, double detect_y, double distance, int idx)

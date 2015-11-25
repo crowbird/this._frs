@@ -2,6 +2,7 @@
 #define NODE_H
 
 #include <list>
+#include <mutex>
 
 class Node;
 
@@ -14,6 +15,7 @@ class Node
     Node(std::string /*id*/);
     std::string id;
     void addFace(Face* face);
+    std::mutex faces_mutex;
     std::list<Face*> faces;
   private:
 };

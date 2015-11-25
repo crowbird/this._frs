@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <fstream>
 #include <sys/stat.h>
 
 #include <curl/curl.h>
@@ -7,21 +8,23 @@
 
 Photo::Photo(std::string id, std::string link, int face_count)
 {
+  processed = false;
   valid = false;
   faces = new Face*[face_count];
   for (int face_idx = 0; face_idx < face_count; face_idx++)
   {
     faces[face_idx] = NULL;
   }
-  this->face_count = face_count;
+  // add when faces are added
+  this->face_count = 0;
   this->id.assign(id);
   this->link.assign(link);
 }
 
-bool Photo::downloaded(void)
+std::ifstream::pos_type filesize(const char* filename)
 {
-  struct stat buffer;   
-  return (stat (file_path.c_str(), &buffer) == 0); 
+  std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+  return in.tellg(); 
 }
 
 size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
@@ -40,8 +43,12 @@ int Photo::downloadLink(void)
   file_path.append("/");
   file_path.append(id);
 
-  if (downloaded())
+  struct stat buffer;
+  if ((stat (file_path.c_str(), &buffer) == 0) && int(filesize(file_path.c_str())) != 0)
+  {
+    downloaded = true;
     return 0;
+  }
 
   const char *outfilename = file_path.c_str();
 
@@ -60,6 +67,15 @@ int Photo::downloadLink(void)
   else
   {
     printf("failed to init curl\n");
+  }
+  if ((stat (file_path.c_str(), &buffer) == 0) && int(filesize(file_path.c_str())) != 0)
+  {
+    downloaded = true;
+    return 0;
+  }
+  else
+  {
+    printf("failed to download photo\n");
   }
   return 0;
 }

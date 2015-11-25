@@ -7,9 +7,13 @@ class Server
 {
   public:
     Server(int port, FaceBase*);
-    int run(void);
-  private:
+    int start(void);
+    int stop(void);
+    std::mutex facebase_mutex;
+    FaceBase *facebase;
     int port;
+  private:
+    pthread_t server_thread;
 };
 
 #endif // SERVER_H

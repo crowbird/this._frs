@@ -22,9 +22,10 @@ class Photo
     int face_count;
     bool valid;
     br::TemplateList face_templates;
-  private:
-    bool downloaded(void);
     std::string id;
+    bool downloaded;
+    bool processed;
+  private:
     std::string link;
 };
 

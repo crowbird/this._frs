@@ -13,32 +13,37 @@
 #include <facebase.h>
 #include <eye.h>
 
-FaceBase *server_facebase;
 
 Server::Server(int port, FaceBase* fb)
 {
   this->port = port;
-  server_facebase = fb;
+  this->facebase = fb;
 }
 
-int Server::run()
+// ugg C11/crow bug
+static Server *server;
+
+static void *server_run(void *context)
 {
+  server = (Server*)context;
   crow::SimpleApp app;
 
   CROW_ROUTE(app, "/new_photos")
   .methods("POST"_method)
   ([](const crow::request& req){
 
+    bool success = false;
     auto photosMetadata = crow::json::load(req.body);
     
+    server->facebase_mutex.lock();
     if (!photosMetadata)
     {
       // unable 
-      return crow::response(400);
+      success = false;
     }
     try
     {
-      printf("Got JSON\n");
+      printf("MORE DATA!\n");
       //std::cout << photosMetadata << "\n";
       for(int photo = 0; photo < photosMetadata.size(); photo++)
       {
@@ -53,7 +58,17 @@ int Server::run()
         std::string photo_link((*photoMetadata)["images"][0]["source"].s());
         int height = (*photoMetadata)["images"][0]["height"].i();
         int width = (*photoMetadata)["images"][0]["width"].i();
-        server_facebase->newPhoto(photo_id, photo_link, photosMetadata[photo]["tags"]["data"].size());
+	int face_count = 0;
+        for (int tag = 0; tag < photosMetadata[photo]["tags"]["data"].size(); tag++)
+	{
+          if (photosMetadata[photo]["tags"]["data"][tag].has("id"))
+	  {
+	    face_count++;
+	  }
+	}
+        int ret = server->facebase->newPhoto(photo_id, photo_link, face_count);
+	if (ret < 0)
+	  break;
         for (int tag = 0; tag < photosMetadata[photo]["tags"]["data"].size(); tag++)
         {
           //std::cout << "\ntag" << photosMetadata[photo]["tags"]["data"][tag] << "\n";
@@ -70,10 +85,12 @@ int Server::run()
           {
             std::string node_id(photosMetadata[photo]["tags"]["data"][tag]["id"].s());
             std::string face_name(photosMetadata[photo]["tags"]["data"][tag]["name"].s());
-            server_facebase->newFace(tag, photo_id, node_id, (x/100)*width, (y/100)*height, face_name);
+	    //printf("add face\n");
+            server->facebase->newFace(tag, photo_id, node_id, (x/100)*width, (y/100)*height, face_name);
           }
         }
-        server_facebase->detectFaces(photo_id);
+	//printf("detect faces\n");
+	server->facebase->flagPhotoForProcessing(photo_id);
 
         /*if(photosMetadata[item].t() == crow::json::type::List)
         {
@@ -101,22 +118,37 @@ int Server::run()
         //std::cout << "\nid - " << photosMetadata[item]["id"] << "\n";
         //break;
       }
-
+      success = true;
     }
     catch (std::exception e)
     {
-      return crow::response(400);
+      success = false;
     }
 
+    server->facebase_mutex.unlock();
+
+    if (!success)
+      return crow::response(400);
     return crow::response(200);
   });
 
   
 
-  app.port(port)
-  //.multithreaded()
+  app.port(server->port)
+  .multithreaded()
   .run();
 
+  return NULL;
+}
+
+int Server::start()
+{
+  return pthread_create(&server_thread, NULL, server_run, this);
+}
+
+int Server::stop(void)
+{
+  pthread_join(server_thread, NULL);
   return 0;
 }
 
